@@ -5,9 +5,10 @@ import os
 
 if __name__ == '__main__':
     DATA_PATH = 'dataset'
+    pdf_method = 'pdfplumber'
     pdf_docs_list = os.listdir(DATA_PATH) 
-    reader = PDFReader('pdfplumber')
-    ER = EntityRecognition()
+    reader = PDFReader(pdf_method)
+    ER = EntityRecognition(pdf_method=pdf_method)
 
     for pdf_file in pdf_docs_list:
         pdf_path = os.path.join(DATA_PATH, pdf_file)

@@ -9,11 +9,12 @@ from spacy.matcher import Matcher
 import pandas as pd
 
 class EntityRecognition:
-    def __init__(self, bse_csv='bse_companies.csv', pdf_method=None):
+    def __init__(self, bse_csv='bse_companies.csv', pdf_method=None, only_bse=True):
         self.nlp = spacy.load("en_core_web_trf")
         self.match_nlp = spacy.load("en_core_web_sm")
         self.bse_csv = bse_csv
         self.pdf_method = pdf_method
+        self.only_bse = only_bse
 
     def clean(self, text):
         # removing paragraph numbers
@@ -125,7 +126,8 @@ class EntityRecognition:
             author = list(set(author).intersection(authors))
         # author = person_counter.most_common(1)[0][0]
         companies = list(set(orgs))
-        companies = self.filter_companies(companies, author_institution)
+        if self.only_bse:
+            companies = self.filter_companies(companies, author_institution)
         return author_institution, author, companies, list(set(targets))
     
 
