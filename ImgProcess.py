@@ -11,6 +11,7 @@ class ImageTools:
     
     def __call__(self, img):
         img, xs, ys = self.split_line_regions(img)
+        self.plot_imgs([img])
         return self.split_image(img, xs, ys)
         
     def split_line_regions(self, image):
@@ -60,9 +61,30 @@ class ImageTools:
                 top, bottom, left, right = 0, height, xs[i], xs[i+1]
                 new_img = img.crop((left, top, right, bottom))
                 extrema = new_img.convert("L").getextrema()
-                if not extrema[0] == extrema[1] and len(list(set(list(new_img.getdata()))))>100:
+                w, h = new_img.size
+                if not extrema[0] == extrema[1] and len(list(set(list(new_img.getdata()))))>100 and h>25 and w>20:
                     x_cropped_imgs.append(new_img)
         return x_cropped_imgs
+    
+    # def split_image(self, image, xs, ys):
+    #     width, height = image.size
+
+    #     x_cropped_imgs = []
+    #     for i in range(len(xs)-1):
+    #         top, bottom, left, right = 0, height, xs[i], xs[i+1]
+    #         x_cropped_imgs.append(image.crop((left, top, right, bottom)) )
+
+    #     y_cropped_imgs = []
+    #     for img in x_cropped_imgs:
+    #         width, height = img.size
+    #         for i in range(len(ys)-1):
+    #             top, bottom, left, right = ys[i], ys[i+1], 0, width
+    #             new_img = img.crop((left, top, right, bottom))
+    #             extrema = new_img.convert("L").getextrema()
+    #             if not extrema[0] == extrema[1] and len(list(set(list(new_img.getdata()))))>100:
+    #                 y_cropped_imgs.append(new_img)
+    #     return y_cropped_imgs
+
 
     def split_rows_img(self, image):
         open_cv_image = np.array(image) 
@@ -129,13 +151,15 @@ class ImageTools:
             img = imgs[i]
             fig.add_subplot(rows, columns, i+1)
             plt.imshow(img)
+            plt.axis('off')
         plt.show()
     
 
 if __name__ == '__main__':
-    pdf_path = 'dataset\Adani_Power_Q1FY18_results.pdf'
+    pdf_path = 'dataset\[Kotak] Karur Vysya Bank, July 25, 2018.pdf'
+    # pdf_path = 'dataset\Adani_Power_Q1FY18_results.pdf'
     # pdf_path = 'dataset\[Kotak] Nestle India, October 26, 2018.pdf'
-    image = pdf2image.convert_from_path(pdf_path)[6]
+    image = pdf2image.convert_from_path(pdf_path)[0]
 
     img_tools = ImageTools()
     imgs = img_tools(image)
@@ -143,4 +167,5 @@ if __name__ == '__main__':
 
     for img in imgs:
         plt.imshow(img)
+        plt.axis('off')
         plt.show()

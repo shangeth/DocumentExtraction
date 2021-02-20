@@ -35,15 +35,13 @@ class EntityRecognition:
         # removing any reference to outside text
         text = re.sub("[\(\[].*?[\)\]]", "", str(text))
         # remove unnecessary symbols
-        text = re.sub('[^.a-zA-Z0-9 \n\.]', '', text)
+        text = re.sub('[^.@a-zA-Z0-9 \n\.]', '', text)
         
         return text
     def get_target(self, content):
         
         content = re.sub(r"([0-9]+(\.[0-9]+)?)",r" \1 ", content).strip()
         doc = self.match_nlp(content)
-        # print(content)
-        # pattern = [{'LOWER': 'target'}, {'LOWER': 'price', 'OP' : '?'} , {'IS_SPACE': True, 'OP' : '*'}, {'IS_PUNCT': True, 'OP' : '*'}, {'IS_SPACE': True, 'OP' : '*'}, {'LIKE_NUM' : True}]
         pattern = [{'LOWER': 'target'}, {'LOWER': 'price', 'OP' : '*'} ,{'LOWER': 'of', 'OP' : '*'}, {'LOWER': 'rs', 'OP' : '*'},{'IS_SPACE': True, 'OP' : '*'},{'LIKE_NUM' : True}]
         matcher = Matcher(self.match_nlp.vocab)
         matcher.add('target_price', [pattern])
@@ -90,7 +88,7 @@ class EntityRecognition:
         orgs = []
         persons = []
         content_list = content.split(' ')
-        for i in tqdm(range(int(len(content.split(' '))/512))):
+        for i in tqdm(range(int(len(content.split(' '))/512)+1)):
             content = ' '.join(content_list[i*512 : (i+1)*512])
             doc = self.nlp(content)
             
@@ -104,16 +102,17 @@ class EntityRecognition:
             tar_vals, doc = self.get_target(content)
             if tar_vals:
                 target = doc[tar_vals[0][1]:tar_vals[0][2]][-1]
-                targets.append(target)
+                targets.append(int(str(target)))
 
             if self.pdf_method == 'tesseract_split':
                 # author
                 aut_vals, doc = self.get_author(content)
                 if aut_vals:
                     for i in range(len(aut_vals)):
-                        aut = doc[aut_vals[i][1]:aut_vals[i][2]]
-                        authors.append(aut)
+                        aut = doc[aut_vals[i][1]:aut_vals[i][2]-1]
+                        authors.append(str(aut).strip())
 
+        # print(authors)
         org_counter = Counter(orgs)
         author_institution = org_counter.most_common(1)[0][0]
 
@@ -121,14 +120,24 @@ class EntityRecognition:
         min_threshold = 1
         person_counter = {x: count for x, count in dict(person_counter).items() if count >= min_threshold and len(x.split(' '))>=2}
         author = list(person_counter.keys())
-
+        # print(author)
+        
         if self.pdf_method == 'tesseract_split':
-            author = list(set(author).intersection(authors))
+            new_authors = []
+            # author = list(set(author).intersection(authors))
+            for a in author:
+                if any(str(a.split(' ')[-1]) in string for string in authors):
+                    new_authors.append(a)
+
+
+
         # author = person_counter.most_common(1)[0][0]
         companies = list(set(orgs))
         if self.only_bse:
             companies = self.filter_companies(companies, author_institution)
-        return author_institution, author, companies, list(set(targets))
+        if author_institution == []:
+            author_institution = 'Other'
+        return author_institution, new_authors, companies, list(set(targets))
     
 
 

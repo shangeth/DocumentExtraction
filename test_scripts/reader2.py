@@ -6,7 +6,7 @@ import pytesseract
 from ImgProcess import ImageTools
 
 pytesseract.pytesseract.tesseract_cmd = (
-    r'/usr/bin/tesseract'
+    r"C:\Users\shang\AppData\Local\Programs\Tesseract-OCR\tesseract.exe"
 )
 
 class PDFReader:
@@ -20,10 +20,10 @@ class PDFReader:
         return pytesseract.image_to_string(img)
     
     def tesseract_method(self, pdf_path):
-        doc_content = ''
+        doc_content = []
         images = self.pdf2img(pdf_path)
         for pg, img in tqdm(enumerate(images)):
-            doc_content += str(self.tesseract_OCR(img))
+            doc_content.append(str(self.tesseract_OCR(img)))
         return doc_content
     
     def tesseract_split_method(self, pdf_path):
@@ -34,11 +34,9 @@ class PDFReader:
         pages = self.pdf2img(pdf_path)
         for page in pages:
             images += img_tool(page)
-
         for pg, img in tqdm(enumerate(images)):
             img_str = str(self.tesseract_OCR(img))
-            # print(img_str)
-            doc_content.append(img_str)
+            doc_content.append(img_str) 
         return doc_content
 
     def pdfplumber_method(self, pdf_path):

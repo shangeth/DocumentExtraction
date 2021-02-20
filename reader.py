@@ -6,7 +6,7 @@ import pytesseract
 from ImgProcess import ImageTools
 
 pytesseract.pytesseract.tesseract_cmd = (
-    r'/usr/bin/tesseract'
+    r"C:\Users\shang\AppData\Local\Programs\Tesseract-OCR\tesseract.exe"
 )
 
 class PDFReader:
@@ -34,6 +34,7 @@ class PDFReader:
         pages = self.pdf2img(pdf_path)
         for page in pages:
             images += img_tool(page)
+            # break
 
         for pg, img in tqdm(enumerate(images)):
             doc_content += str(self.tesseract_OCR(img))

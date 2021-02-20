@@ -1,3 +1,5 @@
 spacy>=3.0.3
-nltk
-
+nltk 
+pdfplumber 
+pdf2image
+pytesseract
