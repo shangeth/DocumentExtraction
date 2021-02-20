@@ -10,8 +10,8 @@ class ImageTools:
         pass
     
     def __call__(self, img):
-        img, xs, ys = img_tools.split_line_regions(img)
-        return img_tools.split_image(img, xs, ys)
+        img, xs, ys = self.split_line_regions(img)
+        return self.split_image(img, xs, ys)
         
     def split_line_regions(self, image):
         open_cv_image = np.array(image) 
@@ -135,7 +135,7 @@ class ImageTools:
 if __name__ == '__main__':
     pdf_path = 'dataset\Adani_Power_Q1FY18_results.pdf'
     # pdf_path = 'dataset\[Kotak] Nestle India, October 26, 2018.pdf'
-    image = pdf2image.convert_from_path(pdf_path)[0]
+    image = pdf2image.convert_from_path(pdf_path)[6]
 
     img_tools = ImageTools()
     imgs = img_tools(image)

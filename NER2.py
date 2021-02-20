@@ -8,12 +8,14 @@ import re
 from spacy.matcher import Matcher
 import pandas as pd
 
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 class EntityRecognition:
-    def __init__(self, bse_csv='bse_companies.csv', pdf_method=None):
+    def __init__(self, bse_csv='bse_companies.csv'):
         self.nlp = spacy.load("en_core_web_trf")
         self.match_nlp = spacy.load("en_core_web_sm")
         self.bse_csv = bse_csv
-        self.pdf_method = pdf_method
 
     def clean(self, text):
         # removing paragraph numbers
@@ -34,7 +36,7 @@ class EntityRecognition:
         # removing any reference to outside text
         text = re.sub("[\(\[].*?[\)\]]", "", str(text))
         # remove unnecessary symbols
-        text = re.sub('[^.a-zA-Z0-9 \n\.]', '', text)
+        text = re.sub('[^.@a-zA-Z0-9 \n\.]', '', text)
         
         return text
     def get_target(self, content):
@@ -50,7 +52,7 @@ class EntityRecognition:
         matches = matcher(content)
         return matches, doc
 
-    def get_author(self, content):
+    def get_email(self, content):
         doc = self.match_nlp(content)
         pattern = [
             # {'IS_SENT_START': True}, 
@@ -80,39 +82,45 @@ class EntityRecognition:
         return final_company_list
 
 
-    def __call__(self, content):
-        content = self.clean(content)
-
-        if self.pdf_method == 'tesseract_split':
-            authors = []
+    def __call__(self, contents):
         targets = []
+        authors = []
         orgs = []
         persons = []
-        content_list = content.split(' ')
-        for i in tqdm(range(int(len(content.split(' '))/512))):
-            content = ' '.join(content_list[i*512 : (i+1)*512])
-            doc = self.nlp(content)
-            
-            for entity in doc.ents:
-                if entity.label_ == 'ORG':
-                    orgs.append(entity.text)
-                if entity.label_ == 'PERSON':
-                    persons.append(entity.text)
-                
+
+        for content in contents:
+            # author
+            content = self.clean(content)
+            # print(content)
+            aut_vals, doc = self.get_email(content)
+            if aut_vals:
+                for i in range(len(aut_vals)):
+                    aut = doc[aut_vals[i][1]:aut_vals[i][2]-1]
+                    print('Author = ', aut)
+                    authors.append(str(aut).strip())
+
             # target 
             tar_vals, doc = self.get_target(content)
             if tar_vals:
                 target = doc[tar_vals[0][1]:tar_vals[0][2]][-1]
                 targets.append(target)
+                
+            
+            # content_list = content.split(' ')
+            
+            doc = self.nlp(content)
 
-            if self.pdf_method == 'tesseract_split':
-                # author
-                aut_vals, doc = self.get_author(content)
-                if aut_vals:
-                    for i in range(len(aut_vals)):
-                        aut = doc[aut_vals[i][1]:aut_vals[i][2]]
-                        authors.append(aut)
+            # for i in tqdm(range(int(len(doc)/500))):
+            #     content = doc[i*500 : (i+1)*500]
+            #     indoc = self.nlp(content)
+                
+            for entity in doc.ents:
+                if entity.label_ == 'ORG':
+                    orgs.append(entity.text)
+                if entity.label_ == 'PERSON':
+                    persons.append(entity.text)
 
+        print('\n\n\nAuthors = ', authors, '\n\n\n')
         org_counter = Counter(orgs)
         author_institution = org_counter.most_common(1)[0][0]
 
@@ -121,12 +129,14 @@ class EntityRecognition:
         person_counter = {x: count for x, count in dict(person_counter).items() if count >= min_threshold and len(x.split(' '))>=2}
         author = list(person_counter.keys())
 
-        if self.pdf_method == 'tesseract_split':
-            author = list(set(author).intersection(authors))
+        new_author = list(set(author).intersection(authors))
+        # for a in author:
+        #     if a in authors:
+        #         new_author.append(a)
         # author = person_counter.most_common(1)[0][0]
         companies = list(set(orgs))
         companies = self.filter_companies(companies, author_institution)
-        return author_institution, author, companies, list(set(targets))
+        return author_institution, new_author, companies, list(set(targets))
     
 
 
