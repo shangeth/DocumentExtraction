@@ -32,17 +32,18 @@ With some experiments we found, using any library or even pytessseract model rea
 
 ### Tesseract with region split
 ![](assets/img_issue1.png)
+![]()
 
 Even the Tesseract engine reads the document line by line which can combine multiple paragraphs/segments of the document which can mislead the Entity Recognizer. So we have to split the documents into a different region of interest, so the order of the text is maintained.
 
 We use simple computer-vision techniques to draw horizontal and vertical lines across the document which can well separate the regions by maintaining the order. Also, this was important to identify the authors(explained in the below section).
 
-![](assets\img_tool1.png)
+![](assets/img_tool1.png)
 
 to
 
-![](assets\img_tool2.png)
-![](assets\img_tool3.png)
+![](assets/img_tool2.png)
+![](assets/img_tool3.png)
 
  then the tesseract model is used on each of these sub-document and the text of all the subdocument is combined, so that the order of tokens in each subdocument is maintained. After splitting sub documents, useless blank spaces are ignored.
 
