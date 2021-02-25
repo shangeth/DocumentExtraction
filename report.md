@@ -98,6 +98,7 @@ Disadvantage:
 - A linguistic study is essential to understand further into the task and can help us set the token pattern matches. other types of matches can also be experimented with.
 - Models trained on financial documents will surely help the task, we need a language model which can understand the financial terms. It can be expensive, but enterprises train their private models which may not be available publically.
 - A combination of Linguistic knowledge and Deep Learning methods(with representations and unsupervised training) can sure help this task. 
+- Also Refer [End-to-end information extraction from business documents](https://orbit.dtu.dk/en/publications/end-to-end-information-extraction-from-business-documents)
 
 
 
